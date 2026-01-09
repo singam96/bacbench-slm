@@ -15,9 +15,11 @@ echo Starting interactive shell in container...
 echo - Project mounted at /workspace
 echo - Run: python train.py
 
+if not exist "%cd%\.cache" mkdir "%cd%\.cache"
+
 docker run --rm -it --gpus all ^
   -v "%cd%":/workspace ^
-  -v bacbench-trainer-cache:/workspace/.cache ^
+  -v "%cd%\\.cache":/workspace/.cache ^
   -e XDG_CACHE_HOME=/workspace/.cache ^
   -e TORCH_HOME=/workspace/.cache/torch ^
   -e HF_HOME=/workspace/.cache/huggingface ^
