@@ -1,0 +1,24 @@
+import torch
+
+CONFIG = {
+    "dataset_name": "macwiatrak/bacbench-antibiotic-resistance-protein-sequences",
+    "dataset_split": "train",
+    "protein_column": "protein_sequence",
+    "k_folds": 5,
+    "fold": -1,
+    "seed": 1337,
+    "min_seq_len": 20,
+    "max_seq_len": 512,
+    "batch_size": 32,
+    "epochs": 3,
+    "lr": 3e-4,
+    "weight_decay": 0.01,
+    "device": "cuda" if torch.cuda.is_available() else "cpu",
+    "checkpoint_dir": "./checkpoints",
+    "precision": "16-mixed" if torch.cuda.is_available() else "32",
+    "num_workers": 2,
+    "d_model": 256,
+    "n_heads": 8,
+    "n_layers": 6,
+    "dropout": 0.1,
+}

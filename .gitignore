@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Virtualenv / tooling
+.venv/
+venv/
+ENV/
+.env
+pip-wheel-metadata/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Caches
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Hugging Face / Diffusers caches (often huge)
+**/.cache/huggingface/
+
+# Training artifacts / outputs
+checkpoints/
+lightning_logs/
+my_images/
+predict/
+inferred/
+
+# Common model/checkpoint formats
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Generated images
+upscaled_result.png
