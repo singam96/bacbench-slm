@@ -44,9 +44,8 @@ class ProteinCausalLM(nn.Module):
 
         self.register_buffer("_pos_ids", torch.arange(self.max_len, dtype=torch.long), persistent=False)
 
-    def _causal_mask(self, seq_len: int, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
-        m = torch.full((seq_len, seq_len), float("-inf"), device=device, dtype=dtype)
-        return torch.triu(m, diagonal=1)
+    def _causal_mask(self, seq_len: int, device: torch.device) -> torch.Tensor:
+        return torch.triu(torch.ones((seq_len, seq_len), device=device, dtype=torch.bool), diagonal=1)
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
         if input_ids.ndim != 2:
@@ -63,7 +62,7 @@ class ProteinCausalLM(nn.Module):
         if attention_mask is not None:
             src_key_padding_mask = attention_mask == 0
 
-        mask = self._causal_mask(l, device=x.device, dtype=x.dtype)
+        mask = self._causal_mask(l, device=x.device)
         h = self.encoder(x, mask=mask, src_key_padding_mask=src_key_padding_mask)
         h = self.norm(h)
         return self.lm_head(h)

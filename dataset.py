@@ -82,6 +82,8 @@ class GenomeProteinIndexDataset(Dataset):
         vocab: ProteinVocab,
         max_len: int,
         min_seq_len: int,
+        max_proteins_per_genome: int | None = None,
+        seed: int = 0,
     ):
         self.hf_dataset = hf_dataset
         self.genome_indices = list(genome_indices)
@@ -89,41 +91,39 @@ class GenomeProteinIndexDataset(Dataset):
         self.vocab = vocab
         self.max_len = int(max_len)
         self.min_seq_len = int(min_seq_len)
+        self.max_proteins_per_genome = None if max_proteins_per_genome is None else int(max_proteins_per_genome)
+        self.seed = int(seed)
 
         if self.max_len <= 4:
             raise ValueError(f"max_len must be > 4, got {self.max_len}")
         if self.min_seq_len < 0:
             raise ValueError(f"min_seq_len must be >= 0, got {self.min_seq_len}")
+        if self.max_proteins_per_genome is not None and self.max_proteins_per_genome <= 0:
+            raise ValueError(
+                f"max_proteins_per_genome must be > 0 when set, got {self.max_proteins_per_genome}"
+            )
 
+        self._valid_positions: list[list[int]] = []
         self._counts: list[int] = []
         self._cum_counts: list[int] = []
         total = 0
-        for gi in self.genome_indices:
+        for row_pos, gi in enumerate(self.genome_indices):
             row = self.hf_dataset[int(gi)]
             seqs = list(_flatten_strings(row.get(self.protein_column)))
-            n = 0
-            for s in seqs:
-                if isinstance(s, str) and len(s.strip()) >= self.min_seq_len:
-                    n += 1
-            self._counts.append(n)
-            total += n
+            valid = [i for i, s in enumerate(seqs) if isinstance(s, str) and len(s.strip()) >= self.min_seq_len]
+
+            if self.max_proteins_per_genome is not None and len(valid) > self.max_proteins_per_genome:
+                g = torch.Generator().manual_seed(self.seed + int(row_pos) * 1_000_003)
+                perm = torch.randperm(len(valid), generator=g).tolist()
+                valid = [valid[i] for i in perm[: self.max_proteins_per_genome]]
+
+            self._valid_positions.append(valid)
+            self._counts.append(len(valid))
+            total += len(valid)
             self._cum_counts.append(total)
 
     def __len__(self) -> int:
         return self._cum_counts[-1] if self._cum_counts else 0
-
-    def _get_nth_valid_sequence(self, genome_row: dict[str, Any], n: int) -> str:
-        seqs = list(_flatten_strings(genome_row.get(self.protein_column)))
-        k = 0
-        for s in seqs:
-            if not isinstance(s, str):
-                continue
-            if len(s.strip()) < self.min_seq_len:
-                continue
-            if k == n:
-                return s
-            k += 1
-        raise IndexError(f"sequence offset out of range: {n}")
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         if idx < 0 or idx >= len(self):
@@ -133,7 +133,9 @@ class GenomeProteinIndexDataset(Dataset):
         offset = int(idx) - int(prev)
         genome_idx = int(self.genome_indices[row_pos])
         row = self.hf_dataset[genome_idx]
-        seq = self._get_nth_valid_sequence(row, offset)
+        seqs = list(_flatten_strings(row.get(self.protein_column)))
+        pos = self._valid_positions[row_pos][offset]
+        seq = seqs[int(pos)]
         input_ids = tokenize_protein_sequence(seq, vocab=self.vocab, max_len=self.max_len)
         attention_mask = (input_ids != int(self.vocab.pad_id)).to(torch.long)
         return {"input_ids": input_ids, "attention_mask": attention_mask}

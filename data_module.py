@@ -14,8 +14,10 @@ class ProteinDataModule(pl.LightningDataModule):
         vocab: ProteinVocab,
         max_len: int,
         min_seq_len: int,
+        max_proteins_per_genome: int | None,
         batch_size: int,
         num_workers: int = 0,
+        seed: int = 0,
     ):
         super().__init__()
         self.hf_dataset = hf_dataset
@@ -25,8 +27,10 @@ class ProteinDataModule(pl.LightningDataModule):
         self.vocab = vocab
         self.max_len = int(max_len)
         self.min_seq_len = int(min_seq_len)
+        self.max_proteins_per_genome = None if max_proteins_per_genome is None else int(max_proteins_per_genome)
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.seed = int(seed)
 
         self.train_dataset = None
         self.val_dataset = None
@@ -39,6 +43,8 @@ class ProteinDataModule(pl.LightningDataModule):
             vocab=self.vocab,
             max_len=self.max_len,
             min_seq_len=self.min_seq_len,
+            max_proteins_per_genome=self.max_proteins_per_genome,
+            seed=self.seed,
         )
         self.val_dataset = GenomeProteinIndexDataset(
             self.hf_dataset,
@@ -47,9 +53,14 @@ class ProteinDataModule(pl.LightningDataModule):
             vocab=self.vocab,
             max_len=self.max_len,
             min_seq_len=self.min_seq_len,
+            max_proteins_per_genome=self.max_proteins_per_genome,
+            seed=self.seed + 999_983,
         )
 
     def train_dataloader(self):
+        dl_kwargs = {}
+        if self.num_workers > 0:
+            dl_kwargs["prefetch_factor"] = 2
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
@@ -57,9 +68,13 @@ class ProteinDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             persistent_workers=self.num_workers > 0,
+            **dl_kwargs,
         )
 
     def val_dataloader(self):
+        dl_kwargs = {}
+        if self.num_workers > 0:
+            dl_kwargs["prefetch_factor"] = 2
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
@@ -67,4 +82,5 @@ class ProteinDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             persistent_workers=self.num_workers > 0,
+            **dl_kwargs,
         )

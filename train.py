@@ -39,6 +39,11 @@ if __name__ == "__main__":
 
     os.makedirs(CONFIG["checkpoint_dir"], exist_ok=True)
 
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+        torch.set_float32_matmul_precision("high")
+
     pl.seed_everything(int(CONFIG["seed"]), workers=True)
     vocab = build_protein_vocab()
 
@@ -62,8 +67,10 @@ if __name__ == "__main__":
             vocab=vocab,
             max_len=CONFIG["max_seq_len"],
             min_seq_len=CONFIG["min_seq_len"],
+            max_proteins_per_genome=CONFIG.get("max_proteins_per_genome"),
             batch_size=CONFIG["batch_size"],
             num_workers=CONFIG["num_workers"],
+            seed=CONFIG["seed"],
         )
 
         model = LitProteinCausalLM(
@@ -89,11 +96,14 @@ if __name__ == "__main__":
 
         trainer = pl.Trainer(
             max_epochs=CONFIG["epochs"],
+            max_steps=int(CONFIG["max_steps"]) if int(CONFIG.get("max_steps", -1)) > 0 else -1,
             accelerator="auto",
             devices="auto",
             precision=CONFIG["precision"],
             callbacks=[ckpt_callback],
             log_every_n_steps=10,
+            limit_train_batches=CONFIG.get("limit_train_batches", 1.0),
+            limit_val_batches=CONFIG.get("limit_val_batches", 1.0),
         )
 
         trainer.fit(model, datamodule=dm)
