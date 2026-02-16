@@ -2,3 +2,7 @@ torch
 pytorch-lightning
 tqdm
 datasets
+pandas
+scikit-learn
+matplotlib
+tabulate

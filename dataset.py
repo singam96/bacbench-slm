@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from bisect import bisect_right
 from dataclasses import dataclass
 from typing import Any, Iterable
@@ -40,15 +41,25 @@ def build_protein_vocab() -> ProteinVocab:
 
 def _flatten_strings(x: Any) -> Iterable[str]:
     if x is None:
-        return []
+        return
     if isinstance(x, str):
-        return [x]
-    if isinstance(x, (list, tuple)):
-        out: list[str] = []
+        s = x.strip()
+        # Handle stringified lists e.g. "['a', 'b']"
+        if s.startswith("[") and s.endswith("]"):
+            try:
+                parsed = ast.literal_eval(s)
+                if isinstance(parsed, (list, tuple)):
+                    for item in parsed:
+                        yield from _flatten_strings(item)
+                    return
+            except (ValueError, SyntaxError):
+                pass
+        yield x
+        return
+    if isinstance(x, (list, tuple, set)):
         for item in x:
-            out.extend(list(_flatten_strings(item)))
-        return out
-    return []
+            yield from _flatten_strings(item)
+        return
 
 
 def tokenize_protein_sequence(
@@ -84,6 +95,8 @@ class GenomeProteinIndexDataset(Dataset):
         min_seq_len: int,
         max_proteins_per_genome: int | None = None,
         seed: int = 0,
+        label_column: str | None = None,
+        label_map: dict[str, int] | None = None,
     ):
         self.hf_dataset = hf_dataset
         self.genome_indices = list(genome_indices)
@@ -93,6 +106,8 @@ class GenomeProteinIndexDataset(Dataset):
         self.min_seq_len = int(min_seq_len)
         self.max_proteins_per_genome = None if max_proteins_per_genome is None else int(max_proteins_per_genome)
         self.seed = int(seed)
+        self.label_column = label_column
+        self.label_map = label_map
 
         if self.max_len <= 4:
             raise ValueError(f"max_len must be > 4, got {self.max_len}")
@@ -125,17 +140,73 @@ class GenomeProteinIndexDataset(Dataset):
     def __len__(self) -> int:
         return self._cum_counts[-1] if self._cum_counts else 0
 
-    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
+    def _find_genome_and_protein_idx(self, idx: int) -> tuple[int, int]:
         if idx < 0 or idx >= len(self):
             raise IndexError(idx)
-        row_pos = bisect_right(self._cum_counts, int(idx))
-        prev = self._cum_counts[row_pos - 1] if row_pos > 0 else 0
-        offset = int(idx) - int(prev)
-        genome_idx = int(self.genome_indices[row_pos])
-        row = self.hf_dataset[genome_idx]
-        seqs = list(_flatten_strings(row.get(self.protein_column)))
-        pos = self._valid_positions[row_pos][offset]
-        seq = seqs[int(pos)]
-        input_ids = tokenize_protein_sequence(seq, vocab=self.vocab, max_len=self.max_len)
-        attention_mask = (input_ids != int(self.vocab.pad_id)).to(torch.long)
-        return {"input_ids": input_ids, "attention_mask": attention_mask}
+        
+        # Find which genome this index belongs to
+        row_pos = 0
+        if self._cum_counts:
+            import bisect
+            row_pos = bisect.bisect_right(self._cum_counts, int(idx))
+            if row_pos >= len(self._cum_counts):
+                # Handle edge case where bisect returns len if idx is out of bounds 
+                # (though the check above should prevent this)
+                row_pos = len(self._cum_counts) - 1
+            
+        prev_count = self._cum_counts[row_pos - 1] if row_pos > 0 else 0
+        offset = int(idx) - int(prev_count)
+        
+        # Get genome index from our filtered list
+        genome_idx = self.genome_indices[row_pos]
+        
+        # Get the specific protein index within this genome
+        # self._valid_positions stores the INDICES of valid proteins in the original list
+        protein_idx_in_genome = self._valid_positions[row_pos][offset]
+        
+        return int(genome_idx), int(protein_idx_in_genome)
+
+    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
+        genome_idx, protein_idx = self._find_genome_and_protein_idx(idx)
+        genome = self.hf_dataset[genome_idx]
+        
+        # Get sequence
+        seq_list = list(_flatten_strings(genome[self.protein_column]))
+        seq = seq_list[protein_idx]
+        tokens = tokenize_protein_sequence(seq, vocab=self.vocab, max_len=self.max_len)
+        attention_mask = (tokens != self.vocab.pad_id).long()
+        
+        # Base item (Causal LM style)
+        # Note: input_ids for classification is usually the whole sequence.
+        # For Causal LM, it is [:-1] and labels [1:]
+        
+        item = {
+            "input_ids": tokens[:-1], # Default to LM inputs
+            "attention_mask": attention_mask[:-1],
+            "labels": tokens[1:], # For causal LM
+        }
+
+        # Add Classification Label if configured
+        if self.label_column and self.label_map:
+            label_list = list(_flatten_strings(genome[self.label_column]))
+            if protein_idx < len(label_list):
+                raw_label = label_list[protein_idx]
+                # In test mode/limited labels, raw_label might not be in map.
+                # If not found, use -100 (ignore) or <unk> if present?
+                # The label_map usually has <unk> if we configured it, but let's check.
+                label_id = self.label_map.get(str(raw_label).strip(), -100) 
+            else:
+                label_id = -100
+            
+            # OVERWRITE labels for classification task.
+            # Use full sequence for input_ids if classification? 
+            # Actually, standard causal LM input is fine, but maybe we want full sequence.
+            # tokenize_protein_sequence returns full sequence with BOS/EOS/PAD.
+            # If we slice [:-1], we lose the last token (EOS or PAD).
+            # For classification, we usually want [BOS, ..., EOS, PAD].
+            # So let's use full tokens for input_ids if classification.
+            item["input_ids"] = tokens
+            item["attention_mask"] = attention_mask
+            item["labels"] = torch.tensor(label_id, dtype=torch.long)
+
+        return item

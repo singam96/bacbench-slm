@@ -18,6 +18,8 @@ class ProteinDataModule(pl.LightningDataModule):
         batch_size: int,
         num_workers: int = 0,
         seed: int = 0,
+        label_column: str | None = None,
+        label_map: dict | None = None,
     ):
         super().__init__()
         self.hf_dataset = hf_dataset
@@ -31,6 +33,8 @@ class ProteinDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.seed = int(seed)
+        self.label_column = label_column
+        self.label_map = label_map
 
         self.train_dataset = None
         self.val_dataset = None
@@ -45,6 +49,8 @@ class ProteinDataModule(pl.LightningDataModule):
             min_seq_len=self.min_seq_len,
             max_proteins_per_genome=self.max_proteins_per_genome,
             seed=self.seed,
+            label_column=self.label_column,
+            label_map=self.label_map,
         )
         self.val_dataset = GenomeProteinIndexDataset(
             self.hf_dataset,
@@ -55,6 +61,8 @@ class ProteinDataModule(pl.LightningDataModule):
             min_seq_len=self.min_seq_len,
             max_proteins_per_genome=self.max_proteins_per_genome,
             seed=self.seed + 999_983,
+            label_column=self.label_column,
+            label_map=self.label_map,
         )
 
     def train_dataloader(self):
