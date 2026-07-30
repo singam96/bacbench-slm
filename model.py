@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import nn
 
@@ -180,4 +182,87 @@ class ProteinBiLSTM(nn.Module):
             return self.classifier(pooled)
 
         return self.lm_head(out)
+
+
+class ProteinCNN(nn.Module):
+    """1D CNN baseline for protein sequences.
+
+    Uses multiple parallel convolutional kernels of different sizes to capture
+    multi-scale n-gram patterns (like k-mer motifs), followed by global max
+    pooling and a classifier head.
+    """
+
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        d_model: int,
+        n_layers: int,
+        dropout: float,
+        pad_id: int,
+        kernel_sizes: list[int] | None = None,
+    ):
+        super().__init__()
+        self.vocab_size = int(vocab_size)
+        self.d_model = int(d_model)
+        self.n_layers = int(n_layers)
+        self.dropout = float(dropout)
+        self.pad_id = int(pad_id)
+
+        if kernel_sizes is None:
+            kernel_sizes = [3, 5, 7, 9]
+        self.kernel_sizes = kernel_sizes
+
+        self.tok_emb = nn.Embedding(self.vocab_size, self.d_model, padding_idx=self.pad_id)
+        self.drop = nn.Dropout(self.dropout)
+
+        # Multiple parallel conv filters — each captures a different n-gram length
+        self.convs = nn.ModuleList()
+        for k in kernel_sizes:
+            # Pad so output length == input length for easy pooling
+            conv = nn.Conv1d(
+                in_channels=self.d_model,
+                out_channels=self.d_model,
+                kernel_size=k,
+                padding=k // 2,
+            )
+            self.convs.append(conv)
+
+        # Combined feature dim = d_model * number of kernel sizes
+        self.combined_dim = self.d_model * len(self.kernel_sizes)
+        self.norm = nn.LayerNorm(self.combined_dim)
+        self.lm_head = nn.Linear(self.combined_dim, self.vocab_size, bias=False)
+        self.num_classes = None
+
+    def set_classification_head(self, num_classes: int):
+        self.num_classes = int(num_classes)
+        self.classifier = nn.Linear(self.combined_dim, self.num_classes)
+
+    def forward(
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        # input_ids: (B, L)
+        x = self.tok_emb(input_ids)           # (B, L, D)
+        x = self.drop(x)
+        x = x.transpose(1, 2)                 # (B, D, L) — Conv1d expects (B, C, L)
+
+        conv_outs = []
+        for conv in self.convs:
+            out = conv(x)                     # (B, D, L)
+            out = torch.relu(out)
+            # Global max-pooling over the sequence length
+            out = out.max(dim=-1)[0]          # (B, D)
+            conv_outs.append(out)
+
+        # Concatenate features from all kernel sizes
+        h = torch.cat(conv_outs, dim=-1)      # (B, D * n_kernels)
+        h = self.norm(h)
+
+        if getattr(self, "num_classes", None) is not None:
+            return self.classifier(h)
+
+        # Project back to vocab for LM mode (less typical for CNN, but compatible)
+        return self.lm_head(h)
 

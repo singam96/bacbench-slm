@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 
-from model import ProteinBiLSTM, ProteinCausalLM
+from model import ProteinBiLSTM, ProteinCausalLM, ProteinCNN
 
 
 class LitProteinCausalLM(pl.LightningModule):
@@ -40,6 +40,14 @@ class LitProteinCausalLM(pl.LightningModule):
             )
         elif model_type == "bilstm":
             self.model = ProteinBiLSTM(
+                vocab_size=vocab_size,
+                d_model=d_model,
+                n_layers=n_layers,
+                dropout=dropout,
+                pad_id=self.pad_id,
+            )
+        elif model_type == "cnn":
+            self.model = ProteinCNN(
                 vocab_size=vocab_size,
                 d_model=d_model,
                 n_layers=n_layers,
