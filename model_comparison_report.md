@@ -24,15 +24,15 @@ To classify E. coli protein sequences into functional categories (e.g., 'DNA-bin
 
 | Model         | Type                  | Fold               | Val Loss   |   Val Accuracy | Convergence              |
 |:--------------|:----------------------|:-------------------|:-----------|---------------:|:-------------------------|
-| transformer   | Deep Learning         | transformer_fold_0 | 6.6515     |         0.0385 | See TensorBoard          |
-| bilstm        | Deep Learning         | bilstm_fold_0      | 6.4512     |         0.2436 | See TensorBoard          |
-| cnn           | Deep Learning         | cnn_fold_0         | 6.2291     |         0.2436 | See TensorBoard          |
-| random_forest | Feature-based (k-mer) | all                | N/A        |         0.1163 | N/A (no training epochs) |
-  - **Random Forest Val F1 (weighted)**: 0.1085
+| transformer   | Deep Learning         | transformer_fold_0 | 0.3676     |         0.8544 | See charts below         |
+| bilstm        | Deep Learning         | bilstm_fold_0      | 0.3022     |         0.8777 | See charts below         |
+| cnn           | Deep Learning         | cnn_fold_0         | 0.1386     |         0.9237 | See charts below         |
+| random_forest | Feature-based (k-mer) | all                | N/A        |         0.9693 | N/A (no training epochs) |
+  - **Random Forest Val F1 (weighted)**: 0.9688
 
 ## 4. Technical Details
 - **Dataset**: E. coli genomes (TaxID 562).
-- **Task**: Multi-class classification of top 1000 gene products.
+- **Task**: Multi-class classification of top 15 gene products.
 - **Loss Function**: CrossEntropyLoss.
 - **Optimizer**: AdamW.
 

@@ -9,7 +9,7 @@ CONFIG = {
     "species_filter": "562",
     "max_len": 512,
     "batch_size": 32,
-    "epochs": 10,  # Increased epochs since dataset is smaller
+    "epochs": 3,  # Increased epochs since dataset is smaller
     "max_steps": 50_000,
     "limit_train_batches": 1.0,
     "limit_val_batches": 1.0,

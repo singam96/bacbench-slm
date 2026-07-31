@@ -5,20 +5,60 @@ import pandas as pd
 import glob
 from config import CONFIG
 
+def parse_ckpt_metrics(filename: str) -> dict | None:
+    """Parse epoch/loss/acc from a Lightning checkpoint filename.
+
+    Expected format: epoch_0002_loss_0.3676_acc_0.8544.ckpt
+    Returns None for files like last.ckpt / last-v1.ckpt that carry no metrics.
+    """
+    if not filename.endswith(".ckpt"):
+        return None
+    name = filename[: -len(".ckpt")]
+    if name.startswith("last"):
+        return None  # last.ckpt / last-v1.ckpt have no metrics in the name
+    parts = name.split("_")
+    metrics: dict = {}
+    for i, part in enumerate(parts):
+        if part == "epoch" and i + 1 < len(parts):
+            try:
+                metrics["epoch"] = int(parts[i + 1])
+            except ValueError:
+                pass
+        elif part == "loss" and i + 1 < len(parts):
+            try:
+                metrics["val_loss"] = float(parts[i + 1])
+            except ValueError:
+                pass
+        elif part == "acc" and i + 1 < len(parts):
+            try:
+                metrics["val_acc"] = float(parts[i + 1])
+            except ValueError:
+                pass
+    if "val_loss" not in metrics and "val_acc" not in metrics:
+        return None
+    return metrics
+
+
+def best_checkpoint_metrics(fold_dir: str) -> dict | None:
+    """Return metrics of the best (lowest val_loss) epoch checkpoint in a folder."""
+    best = None
+    for ckpt in glob.glob(os.path.join(fold_dir, "*.ckpt")):
+        m = parse_ckpt_metrics(os.path.basename(ckpt))
+        if m is None:
+            continue
+        if best is None or m.get("val_loss", float("inf")) < best.get("val_loss", float("inf")):
+            best = m
+    return best
+
+
 def generate_report():
     print(f"\n{'='*20}\nGenerating Model Comparison Report\n{'='*20}")
     
     report_data = []
     
-    # 1. Gather Deep Learning Model Metrics (Transformer, BiLSTM)
-    # These are stored in checkpoint dirs by PyTorch Lightning or we need to parse logs.
-    # Actually, we didn't explicitly save a "metrics.json" for DL models in train.py, 
-    # but we have TensorBoard logs or checkpoints.
-    # For simplicity, let's assume we want to report the BEST validation metrics found in filenames 
-    # or we should have saved them.
-    # Let's updated train.py to save metrics? No, too late/risky to re-run everything.
-    # We can parse the checkpoint filenames for val_loss.
-    
+    # 1. Gather Deep Learning Model Metrics (Transformer, BiLSTM, CNN)
+    # Metrics are parsed from the epoch checkpoint filenames. The `last.ckpt`
+    # files are excluded because they carry no metrics in their names.
     checkpoint_dir = CONFIG["checkpoint_dir"]
     
     # DL Models (Transformer, BiLSTM, CNN)
@@ -26,47 +66,17 @@ def generate_report():
         fold_dirs = glob.glob(os.path.join(checkpoint_dir, f"{model_type}_fold_*"))
         
         for fd in fold_dirs:
-            # Find best checkpoint
-            ckpts = glob.glob(os.path.join(fd, "*.ckpt"))
-            if not ckpts:
+            m = best_checkpoint_metrics(fd)
+            if m is None:
+                print(f"  [warn] No metric-bearing checkpoint found in {fd}")
                 continue
-                
-            # Filename format: "best-epoch=XX-val_loss=YY.ckpt" or similar
-            # My train.py used: filename="epoch_{epoch:04d}_val_{val_loss:.4f}"
-            
-            best_ckpt = ckpts[0] # Assume one if save_top_k=1
-            # Parse metrics from filename
-            val_loss = None
-            val_acc = None
-            filename = os.path.basename(best_ckpt)
-            
-            # Format: epoch_0001_loss_0.4523_acc_0.8912.ckpt
-            try:
-                # Simple parsing by splitting
-                parts = filename.replace(".ckpt", "").split("_")
-                
-                # Iterate to find keys
-                for i, part in enumerate(parts):
-                    if part == "loss" and i+1 < len(parts):
-                        val_loss = float(parts[i+1])
-                    if part == "acc" and i+1 < len(parts):
-                        val_acc = float(parts[i+1])
-                    if part == "val" and i+1 < len(parts): # Fallback for old format
-                        # epoch_0001_val_0.4523
-                        try:
-                            val_loss = float(parts[i+1])
-                        except:
-                            pass
-            except Exception as e:
-                print(f"Error parsing filename {filename}: {e}")
-            
             report_data.append({
                 "Model": model_type,
                 "Type": "Deep Learning",
                 "Fold": os.path.basename(fd),
-                "Val Loss": val_loss,
-                "Val Accuracy": val_acc if val_acc is not None else "N/A",
-                "Convergence": "See TensorBoard"
+                "Val Loss": m.get("val_loss"),
+                "Val Accuracy": m.get("val_acc", "N/A"),
+                "Convergence": "See charts below",
             })
 
     # 2. Load Random Forest metrics (saved by train.py)
