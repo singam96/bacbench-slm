@@ -55,3 +55,6 @@ emb/
 *.f16
 *.npz
 *.pkl
+
+# ...but keep the small trained heads and results under results/
+!results/*.pt

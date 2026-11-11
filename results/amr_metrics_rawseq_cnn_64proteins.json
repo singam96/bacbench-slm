@@ -1,0 +1,269 @@
+{
+  "macro": {
+    "auprc": 0.340382555756671,
+    "auroc": 0.5931222971330644,
+    "n_evaluated": 21
+  },
+  "per_antibiotic": [
+    {
+      "antibiotic": "amikacin",
+      "n": 311,
+      "n_resistant": 6,
+      "auprc": 0.12033016052535439,
+      "auroc": 0.6672131147540984
+    },
+    {
+      "antibiotic": "ceftriaxone",
+      "n": 550,
+      "n_resistant": 74,
+      "auprc": 0.19823126368960023,
+      "auroc": 0.5763967749261868
+    },
+    {
+      "antibiotic": "cefazolin",
+      "n": 248,
+      "n_resistant": 82,
+      "auprc": 0.3960739504982521,
+      "auroc": 0.569277108433735
+    },
+    {
+      "antibiotic": "piperacillin-tazobactam",
+      "n": 259,
+      "n_resistant": 12,
+      "auprc": 0.2211978355094156,
+      "auroc": 0.5877192982456141
+    },
+    {
+      "antibiotic": "ampicillin",
+      "n": 584,
+      "n_resistant": 249,
+      "auprc": 0.5369424989485545,
+      "auroc": 0.5791284541149673
+    },
+    {
+      "antibiotic": "amoxicillin-clavulanic acid",
+      "n": 485,
+      "n_resistant": 37,
+      "auprc": 0.12180461066267584,
+      "auroc": 0.5500723938223939
+    },
+    {
+      "antibiotic": "cefepime",
+      "n": 304,
+      "n_resistant": 52,
+      "auprc": 0.3541144072353979,
+      "auroc": 0.6346153846153847
+    },
+    {
+      "antibiotic": "ciprofloxacin",
+      "n": 581,
+      "n_resistant": 91,
+      "auprc": 0.26425636346132647,
+      "auroc": 0.6408611796366899
+    },
+    {
+      "antibiotic": "gentamicin",
+      "n": 573,
+      "n_resistant": 75,
+      "auprc": 0.1693282703784461,
+      "auroc": 0.5599732262382865
+    },
+    {
+      "antibiotic": "meropenem",
+      "n": 578,
+      "n_resistant": 6,
+      "auprc": 0.01752522823605635,
+      "auroc": 0.6331585081585082
+    },
+    {
+      "antibiotic": "ertapenem",
+      "n": 304,
+      "n_resistant": 6,
+      "auprc": 0.03615618018337034,
+      "auroc": 0.42953020134228187
+    },
+    {
+      "antibiotic": "azithromycin",
+      "n": 309,
+      "n_resistant": 4,
+      "auprc": 0.2998085774984509,
+      "auroc": 0.881967213114754
+    },
+    {
+      "antibiotic": "erythromycin",
+      "n": 0,
+      "n_resistant": 0,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "chloramphenicol",
+      "n": 301,
+      "n_resistant": 19,
+      "auprc": 0.29789582836609363,
+      "auroc": 0.729003359462486
+    },
+    {
+      "antibiotic": "ceftazidime",
+      "n": 308,
+      "n_resistant": 76,
+      "auprc": 0.373816910816019,
+      "auroc": 0.5741265880217785
+    },
+    {
+      "antibiotic": "cefotaxime",
+      "n": 54,
+      "n_resistant": 51,
+      "auprc": 0.9632724246877249,
+      "auroc": 0.5751633986928105
+    },
+    {
+      "antibiotic": "clindamycin",
+      "n": 1,
+      "n_resistant": 0,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "imipenem",
+      "n": 257,
+      "n_resistant": 1,
+      "auprc": 0.05263157894736842,
+      "auroc": 0.9296875
+    },
+    {
+      "antibiotic": "colistin",
+      "n": 37,
+      "n_resistant": 1,
+      "auprc": 0.047619047619047616,
+      "auroc": 0.4444444444444444
+    },
+    {
+      "antibiotic": "cefoxitin",
+      "n": 371,
+      "n_resistant": 49,
+      "auprc": 0.1793241919952544,
+      "auroc": 0.5669920141969832
+    },
+    {
+      "antibiotic": "aztreonam",
+      "n": 223,
+      "n_resistant": 20,
+      "auprc": 0.2218226726820665,
+      "auroc": 0.6354679802955665
+    },
+    {
+      "antibiotic": "doripenem",
+      "n": 2,
+      "n_resistant": 0,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "ampicillin-sulbactam",
+      "n": 7,
+      "n_resistant": 7,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "trimethoprim-sulfamethoxazole",
+      "n": 539,
+      "n_resistant": 77,
+      "auprc": 0.22269616275978557,
+      "auroc": 0.5977399224152471
+    },
+    {
+      "antibiotic": "tobramycin",
+      "n": 255,
+      "n_resistant": 28,
+      "auprc": 0.20069543510738297,
+      "auroc": 0.605412208936438
+    },
+    {
+      "antibiotic": "tetracycline",
+      "n": 567,
+      "n_resistant": 219,
+      "auprc": 0.4160565430166694,
+      "auroc": 0.5409909200650816
+    },
+    {
+      "antibiotic": "ceftiofur",
+      "n": 7,
+      "n_resistant": 2,
+      "auprc": 0.3666666666666667,
+      "auroc": 0.5
+    },
+    {
+      "antibiotic": "nalidixic acid",
+      "n": 309,
+      "n_resistant": 17,
+      "auprc": 0.24332451559356005,
+      "auroc": 0.6988315874294923
+    },
+    {
+      "antibiotic": "levofloxacin",
+      "n": 266,
+      "n_resistant": 67,
+      "auprc": 0.39977095021854564,
+      "auroc": 0.6600165004125104
+    },
+    {
+      "antibiotic": "penicillin",
+      "n": 0,
+      "n_resistant": 0,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "nitrofurantoin",
+      "n": 43,
+      "n_resistant": 3,
+      "auprc": 0.09073073073073074,
+      "auroc": 0.45833333333333337
+    },
+    {
+      "antibiotic": "oxacillin",
+      "n": 1,
+      "n_resistant": 1,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "streptomycin",
+      "n": 276,
+      "n_resistant": 72,
+      "auprc": 0.32266467110310776,
+      "auroc": 0.5372412854030502
+    },
+    {
+      "antibiotic": "sulfamethoxazole",
+      "n": 35,
+      "n_resistant": 27,
+      "auprc": 0.784251141949807,
+      "auroc": 0.4675925925925926
+    },
+    {
+      "antibiotic": "kanamycin",
+      "n": 7,
+      "n_resistant": 1,
+      "auprc": 0.2,
+      "auroc": 0.33333333333333337
+    },
+    {
+      "antibiotic": "telithromycin",
+      "n": 0,
+      "n_resistant": 0,
+      "auprc": null,
+      "auroc": null
+    },
+    {
+      "antibiotic": "sulfisoxazole",
+      "n": 274,
+      "n_resistant": 63,
+      "auprc": 0.26049302221040405,
+      "auroc": 0.5689460618370571
+    }
+  ],
+  "epoch": 10
+}

@@ -1,0 +1,22 @@
+/workspace/bacbench-slm/amr_embed.py:137: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:213.)
+  E = torch.from_numpy(np.ascontiguousarray(emb)).to(dev)                   # all proteins live on the GPU
+6055 genomes, 1,353,564 unique proteins, dim 480
+train 5450  val 605  antibiotics 37
+
+===== head: bilstm =====
+346,725 parameters
+resumed: ep  0 val AUPRC 0.740 AUROC 0.904
+/workspace/bacbench-slm/amr_embed.py:213: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  tot, nb = tot + float(loss), nb + 1
+ep  1 loss 0.6066  val AUPRC 0.747 AUROC 0.904  (48s)
+ep  2 loss 0.5994  val AUPRC 0.741 AUROC 0.906  (86s)
+ep  3 loss 0.5978  val AUPRC 0.741 AUROC 0.908  (123s)
+ep  4 loss 0.5922  val AUPRC 0.744 AUROC 0.911  (161s)
+ep  5 loss 0.5996  val AUPRC 0.746 AUROC 0.909  (198s)
+ep  6 loss 0.5945  val AUPRC 0.752 AUROC 0.912  (235s)
+ep  7 loss 0.5933  val AUPRC 0.752 AUROC 0.911  (271s)
+ep  8 loss 0.5911  val AUPRC 0.750 AUROC 0.911  (309s)
+ep  9 loss 0.5853  val AUPRC 0.752 AUROC 0.910  (346s)
+ep 10 loss 0.5922  val AUPRC 0.753 AUROC 0.912  (383s)
+best epoch 10: AUPRC 0.753  AUROC 0.912 over 21 antibiotics  [383s]
