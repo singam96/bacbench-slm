@@ -240,7 +240,37 @@ def train_random_forest(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--test", action="store_true", help="Run in test mode (small dataset, few epochs)")
+    parser.add_argument(
+        "--task", choices=["gene_function", "amr"], default="gene_function",
+        help="gene_function: per-protein product classification (original). "
+             "amr: genome-level antibiotic resistance prediction (see amr.py).",
+    )
+    parser.add_argument(
+        "--models", default=None,
+        help="amr task only: comma-separated subset of transformer,bilstm,cnn,random_forest",
+    )
+    for flag, typ in [("--epochs", int), ("--proteins", int), ("--batch-size", int), ("--accumulate", int),
+                      ("--limit-batches", int), ("--num-workers", int), ("--pooling", str)]:
+        parser.add_argument(flag, type=typ, default=None, help="amr task only: override the amr config value")
     args = parser.parse_args()
+
+    if args.task == "amr":
+        from amr import run_amr
+
+        run_amr(
+            test=args.test,
+            models=args.models.split(",") if args.models else None,
+            overrides={
+                "epochs": args.epochs,
+                "max_proteins_per_genome": args.proteins,
+                "batch_size": args.batch_size,
+                "accumulate_grad_batches": args.accumulate,
+                "limit_batches": args.limit_batches,
+                "num_workers": args.num_workers,
+                "pooling": args.pooling,
+            },
+        )
+        raise SystemExit(0)
 
     if args.test:
         print("\n!!! TEST MODE ACTIVATED !!!")

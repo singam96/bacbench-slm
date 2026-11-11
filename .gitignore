@@ -48,3 +48,10 @@ inferred/
 # Generated images
 upscaled_result.png
 AMR Prediction- Bi-LSTM vs Transformers.pptx
+
+# AMR pipeline outputs (embeddings, head weights, metrics)
+checkpoints_amr/
+emb/
+*.f16
+*.npz
+*.pkl
