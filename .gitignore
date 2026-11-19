@@ -58,3 +58,18 @@ emb/
 
 # ...but keep the small trained heads and results under results/
 !results/*.pt
+
+# LaTeX build files (paper/paper.pdf is kept)
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.bbl
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# Personal notes and committee slides
+todo.md
+SECOND DOCTORAL COMMITTEE MEETING.pptx
