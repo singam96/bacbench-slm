@@ -73,8 +73,9 @@ The practical difficulty is scale. A typical \textit{E.~coli} genome has about 4
 
 \section{Data}
 \subsection{Source and filtering}
-We use the Hugging Face dataset \texttt{macwiatrak/bacbench-antibiotic-resistance-protein-sequences} \citep{bacbench}.
-The full download contains 26{,}052 genomes from 403 taxonomic identifiers (about 32\,GB).
+We use the Hugging Face dataset
+\begin{center}\url{macwiatrak/bacbench-antibiotic-resistance-protein-sequences}\end{center}
+\noindent The full download \citep{bacbench} contains 26{,}052 genomes from 403 taxonomic identifiers (about 32\,GB).
 Each row is one genome with, for each of its contigs, the protein identifiers, protein sequences, locus tags, gene coordinates and product annotations.
 We keep genomes whose taxonomic identifier equals 562 (\textit{E.~coli}), giving 7{,}211 genomes.
 An additional 42 genomes carry strain-level \textit{Escherichia coli} identifiers and 33 \textit{Shigella} genomes are excluded by this exact-match filter (under 1\% of the subset).
@@ -282,7 +283,7 @@ In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 30.
 
 \bibitem[BacBench(n.d.)]{bacbench}
 BacBench antibiotic-resistance protein sequences dataset.
-Hugging Face Datasets, \texttt{macwiatrak/bacbench-antibiotic-resistance-protein-sequences}.
+Hugging Face Datasets, \url{macwiatrak/bacbench-antibiotic-resistance-protein-sequences}.
 \todo{verify the authors, title and any associated publication before submission}
 \end{thebibliography}
 
